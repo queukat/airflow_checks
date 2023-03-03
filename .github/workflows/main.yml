@@ -1,0 +1,19 @@
+name: Daily DAG
+
+on:
+  schedule:
+    - cron: '@once'
+
+jobs:
+  run_dag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install apache-airflow requests pytz
+      - name: Start DAG
+        run: airflow dags trigger airflow_tasks
