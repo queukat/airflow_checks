@@ -1,19 +1,35 @@
-name: Daily DAG
+name: Airflow Tasks
 
 on:
-  schedule:
-    - cron: '@once'
+  push:
+    branches:
+      - main
 
 jobs:
-  run_dag:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install apache-airflow requests pytz
-      - name: Start DAG
-        run: airflow dags trigger airflow_tasks
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run Airflow Tasks
+      env:
+        AIRFLOW_HOME: ${{ github.workspace }}/airflow
+        AIRFLOW__CORE__DAGS_FOLDER: ${{ github.workspace }}/dags
+        AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      run: |
+        airflow db init
+        airflow dags import airflow_tasks --ignore-first-line
+        airflow scheduler &
+        sleep 5
+        airflow trigger_dag airflow_tasks
