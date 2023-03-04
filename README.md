@@ -4,7 +4,7 @@ This repository contains a set of tasks for Apache Airflow.
 Prerequisites
 
     Python 3.6+
-    Apache Airflow 2.0+
+    Apache Airflow 1.10.15
 
 # Installation
 
