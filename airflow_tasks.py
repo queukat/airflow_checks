@@ -1,16 +1,14 @@
 from datetime import datetime, timedelta, time
+from airflow.models import DAG
+from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.python_operator import PythonOperator
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.hive_operator import HiveOperator
 from airflow.utils.email import send_email
 from pytz import timezone
 import requests
 import logging
 import traceback
-from airflow import DAG
-from airflow.models import BaseOperator
-from airflow.operators.dummy import DummyOperator
-from airflow.operators.python import PythonOperator
-from airflow.operators.bash import BashOperator
-from airflow.operators.hive_operator import HiveOperator
-from airflow.utils.dates import days_ago
 
 default_args = {
     'owner': 'airflow',
@@ -18,7 +16,7 @@ default_args = {
     'start_date': datetime(2022, 1, 1, tzinfo=timezone('Europe/London')),
     'retries': 1,
     'retry_delay': timedelta(minutes=1),
-    'email': '123@123.123'
+    'email': ['123@123.123'],
 }
 
 dag = DAG(
@@ -102,11 +100,10 @@ def check_dag_status(**kwargs):
     unfinished_tasks = [t for t in tasks if t.task_id != 'check_dag_status' and t.end_date is None]
     if unfinished_tasks:
         current_time = datetime.now(tz).time()
-    if current_time > time(10, 0):
-        subject = f"DAG {dag.dag_id} has unfinished tasks"
-        html_content = f"DAG {dag.dag_id} has unfinished tasks and it's past 10:00 AM in London time. Please check and resolve the issue."
-        return {'subject': subject, 'html_content': html_content}
-        send_email(subject, html_content)
+        if current_time > time(10, 0):
+            subject = f"DAG {dag.dag_id} has unfinished tasks"
+            html_content = f"DAG {dag.dag_id} has unfinished tasks and it's past 10:00 AM in London time. Please check and resolve the issue."
+            send_email(to=default_args['email'], subject=subject, html_content=html_content)
 
 
 def check_task_start_time(**kwargs):
@@ -120,21 +117,18 @@ def check_task_start_time(**kwargs):
                 if time_diff > 5:
                     subject = f"Task {next_task.task_id} is not starting in time"
                     html_content = f"Task {next_task.task_id} is not starting within 5 minutes of the completion of task {task.task_id}. Please check and resolve the issue."
-                    return {'subject': subject, 'html_content': html_content}
-                    send_email(subject, html_content)
+                    send_email(to=default_args['email'], subject=subject, html_content=html_content)
 
 
 class SparkShellOperator(BaseOperator):
     template_fields = ('spark_command',)
     template_ext = ('.sh',)
 
-
     @apply_defaults
     def __init__(self, spark_command, email, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.spark_command = spark_command
         self.email = email
-
 
     def execute(self, context):
         script_file = f"/tmp/{self.task_id}.scala"
@@ -147,7 +141,7 @@ class SparkShellOperator(BaseOperator):
             logging.error("Failed to run Spark command: %s", str(e))
             logging.error("Stack trace: %s", traceback.format_exc())
             send_email(to=self.email, subject="Airflow task failed",
-                   html_content="<pre>" + traceback.format_exc() + "</pre>")
+                       html_content="<pre>" + traceback.format_exc() + "</pre>")
             raise e
 
 
@@ -156,7 +150,7 @@ spark_task = SparkShellOperator(
     spark_command="""
     spark.sql("SELECT COUNT(*) FROM database.table")
     System.exit(0)""",
-    email= default_args.email,
+    email=default_args['email'],
     dag=dag
 )
 
