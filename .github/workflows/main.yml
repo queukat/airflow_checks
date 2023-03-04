@@ -22,6 +22,11 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install apache-airflow==2.2.3 requests pytz
         
+    - name: Install MarkupSafe
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install markupsafe==2.0.1
+        
     - name: Run Airflow Tasks
       env:
         AIRFLOW_HOME: ${{ github.workspace }}/airflow
