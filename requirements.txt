@@ -1,3 +1,0 @@
-apache-airflow>=2.0.0
-requests>=2.25.1
-pytz>=2021.1
