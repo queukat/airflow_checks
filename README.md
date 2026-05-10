@@ -1,5 +1,9 @@
 # Airflow Tasks
 
+<!-- public-repo-status -->
+> Status: Legacy/reference for Airflow 1.10-era workflows. Issues and pull requests are disabled unless support is reopened.
+
+
 This repository contains a set of tasks for Apache Airflow.
 Prerequisites
 
