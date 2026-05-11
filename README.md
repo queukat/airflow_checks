@@ -3,7 +3,6 @@
 <!-- public-repo-status -->
 > Status: Legacy/reference for Airflow 1.10-era workflows. Issues and pull requests are disabled unless support is reopened.
 
-
 This repository contains a set of tasks for Apache Airflow.
 Prerequisites
 
@@ -42,10 +41,6 @@ This repository contains the following operators:
 
     SparkShellOperator: This operator runs a Spark command in a shell script.
 
-
-# License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 Acknowledgements
 
 This project was inspired by the Airflow documentation and the Airflow community. We thank them for their contributions and support.
